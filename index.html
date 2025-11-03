@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prototipe E-Commerce UMKM</title>
+    <!-- Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat ikon Heroicons -->
+    <script
+      type_BROKEN="module"
+      src="https://unpkg.com/heroicons@2.1.1/24/outline/index.js"
+    ></script>
+
+    <!-- Konfigurasi Tailwind & Font -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              inter: ["Inter", "sans-serif"],
+            },
+            colors: {
+              primary: {
+                50: "#fefce8",
+                100: "#fef9c3",
+                200: "#fef08a",
+                300: "#fde047",
+                400: "#facc15",
+                500: "#eab308",
+                600: "#ca8a04",
+                700: "#a16207",
+                800: "#854d0e",
+                900: "#713f12",
+                950: "#422006",
+              },
+              secondary: {
+                50: "#f7fee7",
+                100: "#ecfccb",
+                200: "#d9f99d",
+                300: "#bef264",
+                400: "#a3e635",
+                500: "#84cc16",
+                600: "#65a30d",
+                700: "#4d7c0f",
+                800: "#3f6212",
+                900: "#365314",
+                950: "#1a2e05",
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      /* Sembunyikan semua halaman secara default */
+      .page {
+        display: none;
+      }
+      /* Tampilkan halaman yang aktif */
+      .page.active {
+        display: block;
+      }
+      /* Style untuk input number */
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type="number"] {
+        -moz-appearance: textfield;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- ===== HEADER & NAVIGASI ===== -->
+    <header class="bg-white shadow-md fixed w-full top-0 z-50">
+      <nav
+        class="container mx-auto px-4 py-4 flex justify-between items-center"
+      >
+        <!-- Logo -->
+        <a
+          href="#"
+          onclick="navigateTo('home')"
+          class="text-2xl font-bold text-primary-700"
+          >UMKM Lokal</a
+        >
+
+        <!-- Fitur Pencarian -->
+        <div class="hidden md:block w-1/3">
+          <form onsubmit="handleSearch(event)">
+            <div class="relative">
+              <input
+                type="search"
+                id="search-input"
+                placeholder="Cari produk lokal..."
+                class="w-full px-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+              <button type="submit" class="absolute right-0 top-0 mt-2.5 mr-4">
+                <!-- Ikon Pencarian SVG -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="w-5 h-5 text-gray-400"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Link Kategori & Aksi -->
+        <div class="flex items-center space-x-6">
+          <div class="hidden md:flex space-x-6 text-gray-700">
+            <a
+              href="#"
+              onclick="showCategory('Makanan')"
+              class="hover:text-primary-600"
+              >Makanan</a
+            >
+            <a
+              href="#"
+              onclick="showCategory('Kerajinan')"
+              class="hover:text-primary-600"
+              >Kerajinan</a
+            >
+            <a
+              href="#"
+              onclick="showCategory('Fashion')"
+              class="hover:text-primary-600"
+              >Fashion</a
+            >
+          </div>
+
+          <!-- Ikon Keranjang -->
+          <button onclick="navigateTo('cart')" class="relative">
+            <!-- Ikon Keranjang SVG -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-6 h-6 text-gray-700 hover:text-primary-600"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"
+              />
+            </svg>
+            <span
+              id="cart-count-badge"
+              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
+              >0</span
+            >
+          </button>
+
+          <!-- Login/Daftar -->
+          <button
+            class="bg-primary-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-primary-700"
+          >
+            Login
+          </button>
+        </div>
+      </nav>
+      <!-- Pencarian di Mobile -->
+      <div class="md:hidden p-4 bg-white border-t">
+        <form onsubmit="handleSearch(event)">
+          <input
+            type="search"
+            id="search-input-mobile"
+            placeholder="Cari produk lokal..."
+            class="w-full px-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+        </form>
+      </div>
+    </header>
+
+    <!-- ===== KONTEN UTAMA ===== -->
+    <!-- Semua halaman akan ditukar 'active' vs 'hidden' oleh JS -->
+    <main class="container mx-auto px-4 py-8 mt-32 md:mt-24">
+      <!-- ===== A. HALAMAN UTAMA (HOMEPAGE) ===== -->
+      <div id="page-home" class="page active">
+        <!-- Banner Utama -->
+        <div
+          class="bg-gradient-to-r from-secondary-500 to-primary-500 rounded-lg p-8 md:p-12 mb-8 text-white text-center"
+        >
+          <h1 class="text-3xl md:text-5xl font-bold mb-4">
+            Dukung Karyakarsa UMKM Lokal
+          </h1>
+          <p class="text-lg md:text-xl">
+            Temukan produk unik dan berkualitas langsung dari pembuatnya.
+          </p>
+        </div>
+
+        <!-- Judul Bagian -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Produk Terbaru</h2>
+
+        <!-- Grid "Card Produk" -->
+        <div
+          id="home-product-grid"
+          class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
+        >
+          <!-- Card Produk akan di-render oleh JavaScript -->
+        </div>
+      </div>
+
+      <!-- ===== B. HALAMAN HASIL PENCARIAN / KATEGORI ===== -->
+      <div id="page-search" class="page">
+        <h1
+          id="search-results-title"
+          class="text-3xl font-bold text-gray-800 mb-8"
+        >
+          Hasil Pencarian
+        </h1>
+
+        <!-- Opsi Filter Sederhana -->
+        <div class="mb-6 flex justify-end">
+          <select
+            class="border rounded-md px-4 py-2 text-sm focus:outline-none"
+          >
+            <option>Urutkan: Terbaru</option>
+            <option>Urutkan: Harga Terendah</option>
+            <option>Urutkan: Harga Tertinggi</option>
+          </select>
+        </div>
+
+        <!-- Grid "Card Produk" -->
+        <div
+          id="search-product-grid"
+          class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
+        >
+          <!-- Card Produk akan di-render oleh JavaScript -->
+        </div>
+        <p
+          id="search-no-results"
+          class="hidden text-center text-gray-500 text-lg"
+        >
+          Tidak ada produk yang ditemukan.
+        </p>
+      </div>
+
+      <!-- ===== C. HALAMAN DETAIL PRODUK ===== -->
+      <div id="page-product" class="page">
+        <div class="grid md:grid-cols-2 gap-8 md:gap-12">
+          <!-- Galeri Foto Produk -->
+          <div>
+            <img
+              id="product-detail-img"
+              src="https://placehold.co/600x600/eab308/ffffff?text=Produk"
+              alt="Foto Produk"
+              class="w-full h-auto object-cover rounded-lg shadow-md aspect-square"
+            />
+            <!-- Thumbnail (opsional) -->
+            <div class="flex space-x-2 mt-4">
+              <!--  -->
+              <img
+                src="https://placehold.co/100x100/eab308/ffffff?text=1"
+                alt="thumbnail 1"
+                class="w-16 h-16 rounded-md border-2 border-primary-500 cursor-pointer"
+              />
+              <!--  -->
+              <img
+                src="https://placehold.co/100x100/f3f4f6/9ca3af?text=2"
+                alt="thumbnail 2"
+                class="w-16 h-16 rounded-md border cursor-pointer hover:border-primary-400"
+              />
+            </div>
+          </div>
+
+          <!-- Informasi Produk & Aksi -->
+          <div class="flex flex-col justify-center">
+            <!-- Informasi Penjual (UMKM) -->
+            <p class="text-sm text-gray-500 mb-2">
+              Dijual oleh:
+              <a
+                href="#"
+                id="product-detail-seller"
+                onclick="showCategory('Kerajinan')"
+                class="font-medium text-primary-600 hover:underline"
+                >Nama Toko UMKM</a
+              >
+            </p>
+
+            <!-- Nama Produk -->
+            <h1
+              id="product-detail-name"
+              class="text-3xl md:text-4xl font-bold text-gray-800 mb-4"
+            >
+              Nama Produk Lengkap
+            </h1>
+
+            <!-- Harga -->
+            <p
+              id="product-detail-price"
+              class="text-3xl font-bold text-primary-700 mb-6"
+            >
+              Rp 150.000
+            </p>
+
+            <!-- Stok -->
+            <p class="text-sm text-gray-600 mb-4">
+              Stok tersisa:
+              <span
+                id="product-detail-stock"
+                class="font-medium text-secondary-700"
+                >10</span
+              >
+            </p>
+
+            <!-- Deskripsi Lengkap -->
+            <p
+              id="product-detail-desc"
+              class="text-gray-700 leading-relaxed mb-6"
+            >
+              Ini adalah deskripsi lengkap produk. Menjelaskan bahan, ukuran,
+              dan keunikan dari produk UMKM ini. Dibuat dengan cinta oleh
+              pengrajin lokal.
+            </p>
+
+            <!-- Tombol Aksi -->
+            <div class="flex items-center space-x-4">
+              <!-- Pilihan Jumlah (Qty) -->
+              <div class="flex items-center border rounded-md">
+                <button
+                  onclick="updateProductQty('decrement')"
+                  class="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-l-md"
+                >
+                  -
+                </button>
+                <input
+                  id="product-qty-input"
+                  type="number"
+                  value="1"
+                  min="1"
+                  class="w-12 text-center border-none focus:ring-0"
+                />
+                <button
+                  onclick="updateProductQty('increment')"
+                  class="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-r-md"
+                >
+                  +
+                </button>
+              </div>
+
+              <!-- Tombol Tambah ke Keranjang -->
+              <button
+                onclick="handleAddToCart()"
+                class="flex-1 bg-primary-600 text-white px-6 py-3 rounded-md font-medium hover:bg-primary-700 transition-colors"
+              >
+                Tambah ke Keranjang
+              </button>
+            </div>
+
+            <!-- Notifikasi Sukses -->
+            <div
+              id="toast-success"
+              class="hidden mt-4 bg-secondary-100 border-l-4 border-secondary-500 text-secondary-700 p-4 rounded-md"
+            >
+              <p>Produk berhasil ditambahkan ke keranjang!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== D. HALAMAN KERANJANG BELANJA (CART) ===== -->
+      <div id="page-cart" class="page">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">
+          Keranjang Belanja Anda
+        </h1>
+
+        <div class="grid md:grid-cols-3 gap-8">
+          <!-- Daftar Produk di Keranjang -->
+          <div class="md:col-span-2">
+            <div id="cart-items-container" class="space-y-6">
+              <!-- Item keranjang akan di-render oleh JavaScript -->
+            </div>
+
+            <!-- Kondisi Keranjang Kosong -->
+            <div id="cart-empty-state" class="hidden text-center py-12">
+              <!--  -->
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-16 h-16 text-gray-300 mx-auto mb-4"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"
+                />
+              </svg>
+              <h2 class="text-xl font-medium text-gray-700 mb-2">
+                Keranjang Anda kosong
+              </h2>
+              <p class="text-gray-500 mb-6">
+                Ayo mulai belanja produk UMKM lokal!
+              </p>
+              <button
+                onclick="navigateTo('home')"
+                class="bg-primary-600 text-white px-6 py-2 rounded-md font-medium hover:bg-primary-700"
+              >
+                Mulai Belanja
+              </button>
+            </div>
+          </div>
+
+          <!-- Ringkasan Pesanan (Cart) -->
+          <div
+            id="cart-summary"
+            class="bg-white p-6 rounded-lg shadow-md h-fit"
+          >
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-4">
+              Ringkasan Pesanan
+            </h2>
+            <div class="flex justify-between text-gray-700 mb-4">
+              <span>Subtotal Barang</span>
+              <span id="cart-subtotal" class="font-medium">Rp 0</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-6">
+              Biaya pengiriman akan dihitung saat checkout.
+            </p>
+            <button
+              onclick="navigateTo('checkout')"
+              class="w-full bg-secondary-600 text-white px-6 py-3 rounded-md font-medium hover:bg-secondary-700 transition-colors"
+            >
+              Lanjut ke Checkout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== E. HALAMAN CHECKOUT ===== -->
+      <div id="page-checkout" class="page">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Checkout</h1>
+
+        <form
+          id="checkout-form"
+          onsubmit="handlePlaceOrder(event)"
+          class="grid md:grid-cols-3 gap-8"
+        >
+          <!-- Kolom Form (Kiri) -->
+          <div class="md:col-span-2 space-y-8">
+            <!-- 1. Alamat Pelanggan -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+              <h2 class="text-xl font-bold text-gray-800 mb-4">
+                Alamat Pengiriman
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    for="nama"
+                    class="block text-sm font-medium text-gray-700"
+                    >Nama Lengkap</label
+                  >
+                  <input
+                    type="text"
+                    id="nama"
+                    required
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                <div>
+                  <label
+                    for="hp"
+                    class="block text-sm font-medium text-gray-700"
+                    >Nomor HP</label
+                  >
+                  <input
+                    type="tel"
+                    id="hp"
+                    required
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                <div class="md:col-span-2">
+                  <label
+                    for="alamat"
+                    class="block text-sm font-medium text-gray-700"
+                    >Alamat Lengkap</label
+                  >
+                  <textarea
+                    id="alamat"
+                    rows="3"
+                    required
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm focus:ring-primary-500 focus:border-primary-500"
+                  ></textarea>
+                </div>
+                <div>
+                  <label
+                    for="kodepos"
+                    class="block text-sm font-medium text-gray-700"
+                    >Kode Pos</label
+                  >
+                  <input
+                    type="text"
+                    id="kodepos"
+                    required
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Pilihan Pengiriman (Sederhana) -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+              <h2 class="text-xl font-bold text-gray-800 mb-4">
+                Pilihan Pengiriman
+              </h2>
+              <div
+                class="border rounded-md p-4 flex justify-between items-center"
+              >
+                <div>
+                  <p class="font-medium">Kurir Lokal (Prototype)</p>
+                  <p class="text-sm text-gray-500">Estimasi 2-3 hari kerja</p>
+                </div>
+                <span class="font-medium text-gray-800">Rp 10.000</span>
+              </div>
+            </div>
+
+            <!-- 3. Pilihan Pembayaran (Sederhana) -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+              <h2 class="text-xl font-bold text-gray-800 mb-4">
+                Pilihan Pembayaran
+              </h2>
+              <div>
+                <input
+                  type="radio"
+                  id="transfer"
+                  name="payment"
+                  value="transfer"
+                  checked
+                  class="text-primary-600 focus:ring-primary-500"
+                />
+                <label for="transfer" class="ml-2 font-medium"
+                  >Transfer Bank Manual</label
+                >
+              </div>
+              <div
+                id="bank-details"
+                class="mt-4 bg-gray-50 p-4 rounded-md border text-sm text-gray-700"
+              >
+                <p>Silakan transfer ke rekening berikut:</p>
+                <p class="font-medium mt-2">
+                  Bank BCA: <span class="text-gray-900">123-456-7890</span>
+                </p>
+                <p class="font-medium">
+                  Atas Nama:
+                  <span class="text-gray-900">PT UMKM Lokal Jaya</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kolom Ringkasan (Kanan) -->
+          <div class="md:col-span-1">
+            <div class="bg-white p-6 rounded-lg shadow-md h-fit">
+              <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-4">
+                Ringkasan Akhir
+              </h2>
+              <div class="flex justify-between text-gray-700 mb-2">
+                <span>Subtotal Barang</span>
+                <span id="checkout-subtotal" class="font-medium">Rp 0</span>
+              </div>
+              <div class="flex justify-between text-gray-700 mb-4">
+                <span>Biaya Pengiriman</span>
+                <span id="checkout-shipping" class="font-medium"
+                  >Rp 10.000</span
+                >
+              </div>
+              <div
+                class="border-t pt-4 flex justify-between text-xl font-bold text-gray-900"
+              >
+                <span>Total</span>
+                <span id="checkout-total">Rp 10.000</span>
+              </div>
+              <button
+                type="submit"
+                class="mt-6 w-full bg-secondary-600 text-white px-6 py-3 rounded-md font-medium hover:bg-secondary-700 transition-colors"
+              >
+                Buat Pesanan
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- ===== F. HALAMAN "PESANAN SELESAI" (THANK YOU) ===== -->
+      <div id="page-thankyou" class="page">
+        <div
+          class="bg-white p-8 md:p-12 rounded-lg shadow-md max-w-2xl mx-auto text-center"
+        >
+          <!--  -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-16 h-16 text-secondary-600 mx-auto mb-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            />
+          </svg>
+          <h1 class="text-3xl font-bold text-gray-800 mb-4">
+            Terima Kasih Atas Pesanan Anda!
+          </h1>
+          <p class="text-gray-600 mb-6">
+            Pesanan Anda telah kami terima dan akan segera diproses.
+          </p>
+
+          <div class="bg-gray-50 border rounded-md p-4 mb-6">
+            <p class="text-sm text-gray-600">Nomor Pesanan Anda:</p>
+            <p id="order-id" class="text-2xl font-medium text-gray-900">
+              #12345ABC
+            </p>
+          </div>
+
+          <h2 class="text-xl font-semibold text-gray-800 mb-3">
+            Instruksi Pembayaran
+          </h2>
+          <div class="text-sm text-gray-600 leading-relaxed">
+            <p>
+              Silakan lakukan pembayaran sejumlah
+              <strong id="thankyou-total" class="text-gray-900"
+                >Rp 160.000</strong
+              >
+              ke rekening:
+            </p>
+            <p class="font-medium mt-2">
+              Bank BCA: 123-456-7890 (a/n PT UMKM Lokal Jaya)
+            </p>
+            <p class="mt-2">
+              Pesanan Anda akan dikirim setelah pembayaran dikonfirmasi.
+            </p>
+          </div>
+
+          <button
+            onclick="navigateTo('home')"
+            class="mt-8 bg-primary-600 text-white px-6 py-2 rounded-md font-medium hover:bg-primary-700"
+          >
+            Kembali ke Beranda
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="bg-gray-800 text-gray-300 mt-16">
+      <div
+        class="container mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-8"
+      >
+        <!-- Tentang Kami -->
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-4">UMKM Lokal</h3>
+          <p class="text-sm">
+            Platform komunitas untuk mendukung dan memajukan UMKM di seluruh
+            Indonesia. Beli lokal, dukung ekonomi lokal.
+          </p>
+        </div>
+        <!-- Link Cepat -->
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-4">Bantuan</h3>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="hover:underline">Cara Berbelanja</a></li>
+            <li><a href="#" class="hover:underline">Lacak Pesanan</a></li>
+            <li><a href="#" class="hover:underline">FAQ (Tanya Jawab)</a></li>
+            <li><a href="#" class="hover:underline">Hubungi Kami</a></li>
+          </ul>
+        </div>
+        <!-- Media Sosial -->
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-4">Ikuti Kami</h3>
+          <p class="text-sm">
+            Dapatkan info produk terbaru dan promosi spesial.
+          </p>
+          <!-- Ikon Medsos (placeholder) -->
+        </div>
+      </div>
+      <div class="bg-gray-900 text-center py-4">
+        <p class="text-sm text-gray-500">
+          &copy; 2025 UMKM Lokal. Seluruh hak cipta dilindungi.
+        </p>
+      </div>
+    </footer>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+      // --- DATABASE PRODUK (MOCK) ---
+      const allProducts = [
+        {
+          id: 1,
+          name: "Kopi Robusta Temanggung",
+          price: 75000,
+          seller: "Kopi Jaya Temanggung",
+          category: "Makanan",
+          stock: 15,
+          img: "https://placehold.co/600x600/713f12/ffffff?text=Kopi+Robusta",
+          desc: "Biji kopi robusta pilihan dari Temanggung, diproses secara alami. Menghasilkan rasa yang kuat dan aroma yang khas.",
+        },
+        {
+          id: 2,
+          name: "Tas Anyam Rotan Asli",
+          price: 185000,
+          seller: "Pengrajin Rotan Tasik",
+          category: "Kerajinan",
+          stock: 8,
+          img: "https://placehold.co/600x600/a16207/ffffff?text=Tas+Rotan",
+          desc: "Tas anyaman rotan premium buatan tangan pengrajin Tasikmalaya. Kuat, stylish, dan ramah lingkungan.",
+        },
+        {
+          id: 3,
+          name: "Batik Tulis Madura",
+          price: 450000,
+          seller: "Batik Warisan Pamekasan",
+          category: "Fashion",
+          stock: 5,
+          img: "https://placehold.co/600x600/854d0e/ffffff?text=Batik+Tulis",
+          desc: "Kain batik tulis asli Madura dengan motif pesisir yang cerah. Dibuat dengan proses canting tradisional.",
+        },
+        {
+          id: 4,
+          name: "Madu Hutan Liar Sumbawa",
+          price: 120000,
+          seller: "Madu Alami Sumbawa",
+          category: "Makanan",
+          stock: 20,
+          img: "https://placehold.co/600x600/eab308/ffffff?text=Madu+Hutan",
+          desc: "Madu hutan liar murni dari nektar multiflora di hutan Sumbawa. Kaya akan nutrisi dan antioksidan.",
+        },
+        {
+          id: 5,
+          name: "Keripik Singkong Balado",
+          price: 25000,
+          seller: "Dapur Ummi Padang",
+          category: "Makanan",
+          stock: 50,
+          img: "https://placehold.co/600x600/fde047/ffffff?text=Keripik",
+          desc: "Keripik singkong renyah dengan bumbu balado asli Padang yang pedas, manis, dan gurih. Tanpa pengawet.",
+        },
+        {
+          id: 6,
+          name: "Dompet Kulit Pria Garut",
+          price: 210000,
+          seller: "Garut Kulit Asli",
+          category: "Fashion",
+          stock: 12,
+          img: "https://placehold.co/600x600/422006/ffffff?text=Dompet+Kulit",
+          desc: "Dompet pria dibuat dari 100% kulit sapi asli Garut. Desain klasik, jahitan rapi, dan tahan lama.",
+        },
+      ];
+
+      // --- STATE APLIKASI ---
+      let cart = []; // Format: [{ id: 1, name: "...", price: ..., qty: 1, img: "..." }, ...]
+      let currentProduct = null; // Menyimpan produk yang sedang dilihat di halaman detail
+      const shippingCost = 10000;
+
+      // --- FUNGSI UTILITAS ---
+
+      /**
+       * Mengubah angka menjadi format Rupiah.
+       * @param {number} number - Angka yang akan diformat.
+       * @returns {string} - String berformat Rupiah.
+       */
+      function formatRupiah(number) {
+        return new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+          minimumFractionDigits: 0,
+        }).format(number);
+      }
+
+      /**
+       * Navigasi antar halaman (div)
+       * @param {string} pageId - ID dari div halaman (cth: 'home', 'cart').
+       */
+      function navigateTo(pageId) {
+        // Sembunyikan semua halaman
+        document.querySelectorAll(".page").forEach((page) => {
+          page.classList.remove("active");
+        });
+        // Tampilkan halaman yang dituju
+        const targetPage = document.getElementById(`page-${pageId}`);
+        if (targetPage) {
+          targetPage.classList.add("active");
+          window.scrollTo(0, 0); // Scroll ke atas
+        }
+
+        // Logika khusus saat pindah halaman
+        if (pageId === "cart") {
+          renderCart();
+        }
+        if (pageId === "checkout") {
+          renderCheckoutSummary();
+        }
+      }
+
+      // --- FUNGSI RENDER ---
+
+      /**
+       * Membuat HTML untuk satu card produk.
+       * @param {object} product - Objek produk.
+       * @returns {string} - HTML string untuk card produk.
+       */
+      function createProductCardHTML(product) {
+        return `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer" onclick="viewProduct(${
+                  product.id
+                })">
+                    <img src="${product.img}" alt="${
+          product.name
+        }" class="w-full h-48 md:h-56 object-cover">
+                    <div class="p-4">
+                        <h3 class="font-medium text-gray-800 truncate">${
+                          product.name
+                        }</h3>
+                        <p class="text-sm text-gray-500 mb-2">oleh: ${
+                          product.seller
+                        }</p>
+                        <p class="font-bold text-lg text-primary-700">${formatRupiah(
+                          product.price
+                        )}</p>
+                    </div>
+                </div>
+            `;
+      }
+
+      /**
+       * Merender semua produk ke halaman utama.
+       */
+      function renderHomeProducts() {
+        const grid = document.getElementById("home-product-grid");
+        grid.innerHTML = allProducts.map(createProductCardHTML).join("");
+      }
+
+      /**
+       * Merender produk hasil pencarian atau kategori.
+       * @param {array} productsToShow - Array produk yang akan ditampilkan.
+       * @param {string} title - Judul halaman (cth: "Hasil pencarian untuk 'Kopi'").
+       */
+      function renderSearchResults(productsToShow, title) {
+        const grid = document.getElementById("search-product-grid");
+        const noResults = document.getElementById("search-no-results");
+        document.getElementById("search-results-title").textContent = title;
+
+        if (productsToShow.length === 0) {
+          grid.innerHTML = "";
+          noResults.style.display = "block";
+        } else {
+          grid.innerHTML = productsToShow.map(createProductCardHTML).join("");
+          noResults.style.display = "none";
+        }
+
+        navigateTo("search");
+      }
+
+      /**
+       * Merender isi halaman keranjang belanja.
+       */
+      function renderCart() {
+        const container = document.getElementById("cart-items-container");
+        const emptyState = document.getElementById("cart-empty-state");
+        const summary = document.getElementById("cart-summary");
+
+        if (cart.length === 0) {
+          container.innerHTML = "";
+          emptyState.style.display = "block";
+          summary.style.display = "none";
+        } else {
+          emptyState.style.display = "none";
+          summary.style.display = "block";
+
+          container.innerHTML = cart
+            .map(
+              (item) => `
+                    <div class="bg-white p-4 rounded-lg shadow-sm flex items-start space-x-4">
+                        <img src="${item.img}" alt="${
+                item.name
+              }" class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-md">
+                        <div class="flex-1">
+                            <h3 class="font-medium text-gray-800">${
+                              item.name
+                            }</h3>
+                            <p class="text-sm text-gray-500">oleh: ${
+                              item.seller
+                            }</p>
+                            <p class="font-bold text-lg text-primary-700 mt-1">${formatRupiah(
+                              item.price
+                            )}</p>
+                        </div>
+                        <div class="flex flex-col items-end justify-between h-full">
+                            <!-- Input Qty -->
+                            <div class="flex items-center border rounded-md">
+                                <button onclick="updateCartQuantity(${
+                                  item.id
+                                }, ${
+                item.qty - 1
+              })" class="px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-l-md" ${
+                item.qty <= 1 ? "disabled" : ""
+              }>-</button>
+                                <input type="number" value="${
+                                  item.qty
+                                }" min="1" onchange="updateCartQuantity(${
+                item.id
+              }, this.value)" class="w-10 text-center text-sm border-none focus:ring-0">
+                                <button onclick="updateCartQuantity(${
+                                  item.id
+                                }, ${
+                item.qty + 1
+              })" class="px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-r-md">+</button>
+                            </div>
+                            <!-- Tombol Hapus -->
+                            <button onclick="removeFromCart(${
+                              item.id
+                            })" class="text-sm text-red-500 hover:underline mt-2">Hapus</button>
+                        </div>
+                    </div>
+                `
+            )
+            .join("");
+        }
+        updateCartSummary();
+        updateCartCountBadge();
+      }
+
+      /**
+       * Update ringkasan subtotal di halaman keranjang.
+       */
+      function updateCartSummary() {
+        const subtotal = cart.reduce(
+          (acc, item) => acc + item.price * item.qty,
+          0
+        );
+        document.getElementById("cart-subtotal").textContent =
+          formatRupiah(subtotal);
+      }
+
+      /**
+       * Update ringkasan di halaman checkout.
+       */
+      function renderCheckoutSummary() {
+        const subtotal = cart.reduce(
+          (acc, item) => acc + item.price * item.qty,
+          0
+        );
+        const total = subtotal + shippingCost;
+
+        document.getElementById("checkout-subtotal").textContent =
+          formatRupiah(subtotal);
+        document.getElementById("checkout-shipping").textContent =
+          formatRupiah(shippingCost);
+        document.getElementById("checkout-total").textContent =
+          formatRupiah(total);
+      }
+
+      // --- FUNGSI HANDLER (AKSI PENGGUNA) ---
+
+      /**
+       * Menampilkan halaman detail untuk produk yang dipilih.
+       * @param {number} productId - ID produk yang akan ditampilkan.
+       */
+      function viewProduct(productId) {
+        const product = allProducts.find((p) => p.id === productId);
+        if (!product) return;
+
+        currentProduct = product; // Simpan produk yang sedang dilihat
+
+        // Isi data ke elemen HTML
+        document.getElementById("product-detail-img").src = product.img;
+        document.getElementById("product-detail-img").alt = product.name;
+        document.getElementById("product-detail-seller").textContent =
+          product.seller;
+        document.getElementById("product-detail-name").textContent =
+          product.name;
+        document.getElementById("product-detail-price").textContent =
+          formatRupiah(product.price);
+        document.getElementById("product-detail-stock").textContent =
+          product.stock;
+        document.getElementById("product-detail-desc").textContent =
+          product.desc;
+        document.getElementById("product-qty-input").value = 1; // Reset qty
+        document.getElementById("toast-success").style.display = "none"; // Sembunyikan notifikasi
+
+        navigateTo("product");
+      }
+
+      /**
+       * Menangani pencarian produk.
+       * @param {Event} event - Event submit form.
+       */
+      function handleSearch(event) {
+        event.preventDefault();
+        // Cek input mobile atau desktop
+        let query = document.getElementById("search-input").value;
+        if (query === "") {
+          query = document.getElementById("search-input-mobile").value;
+        }
+        query = query.toLowerCase();
+
+        const results = allProducts.filter(
+          (p) =>
+            p.name.toLowerCase().includes(query) ||
+            p.seller.toLowerCase().includes(query) ||
+            p.category.toLowerCase().includes(query)
+        );
+
+        renderSearchResults(results, `Hasil pencarian untuk "${query}"`);
+      }
+
+      /**
+       * Menampilkan halaman kategori (simulasi pencarian berdasarkan kategori).
+       * @param {string} categoryName - Nama kategori.
+       */
+      function showCategory(categoryName) {
+        const results = allProducts.filter((p) => p.category === categoryName);
+        renderSearchResults(results, `Menampilkan Kategori "${categoryName}"`);
+      }
+
+      /**
+       * Mengubah jumlah Qty di halaman detail produk.
+       * @param {'increment'|'decrement'} action - Aksi tambah atau kurang.
+       */
+      function updateProductQty(action) {
+        const input = document.getElementById("product-qty-input");
+        let qty = parseInt(input.value);
+        if (action === "increment") {
+          qty++;
+        } else if (action === "decrement" && qty > 1) {
+          qty--;
+        }
+        input.value = qty;
+      }
+
+      /**
+       * Menambahkan produk ke keranjang.
+       */
+      function handleAddToCart() {
+        if (!currentProduct) return;
+
+        const qty = parseInt(
+          document.getElementById("product-qty-input").value
+        );
+        const existingItem = cart.find((item) => item.id === currentProduct.id);
+
+        if (existingItem) {
+          // Jika sudah ada, tambahkan qty
+          existingItem.qty += qty;
+        } else {
+          // Jika belum ada, tambahkan item baru
+          cart.push({
+            id: currentProduct.id,
+            name: currentProduct.name,
+            price: currentProduct.price,
+            seller: currentProduct.seller,
+            img: currentProduct.img,
+            qty: qty,
+          });
+        }
+
+        updateCartCountBadge();
+
+        // Tampilkan notifikasi sukses
+        const toast = document.getElementById("toast-success");
+        toast.style.display = "block";
+        setTimeout(() => {
+          toast.style.display = "none";
+        }, 3000); // Sembunyikan setelah 3 detik
+      }
+
+      /**
+       * Mengupdate jumlah item di keranjang.
+       * @param {number} productId - ID produk di keranjang.
+       * @param {number|string} newQty - Jumlah baru.
+       */
+      function updateCartQuantity(productId, newQty) {
+        newQty = parseInt(newQty);
+        if (newQty < 1) {
+          removeFromCart(productId);
+          return;
+        }
+
+        const item = cart.find((item) => item.id === productId);
+        if (item) {
+          item.qty = newQty;
+          renderCart(); // Render ulang keranjang
+        }
+      }
+
+      /**
+       * Menghapus item dari keranjang.
+       * @param {number} productId - ID produk yang akan dihapus.
+       */
+      function removeFromCart(productId) {
+        cart = cart.filter((item) => item.id !== productId);
+        renderCart(); // Render ulang keranjang
+      }
+
+      /**
+       * Update badge jumlah item di ikon keranjang.
+       */
+      function updateCartCountBadge() {
+        const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
+        document.getElementById("cart-count-badge").textContent = totalItems;
+      }
+
+      /**
+       * Menangani proses "Buat Pesanan".
+       * @param {Event} event - Event submit form checkout.
+       */
+      function handlePlaceOrder(event) {
+        event.preventDefault();
+
+        // Validasi sederhana (misal, cek keranjang tidak kosong)
+        if (cart.length === 0) {
+          // Seharusnya tidak terjadi karena tombol checkout disembunyikan, tapi sbg pengaman
+          return;
+        }
+
+        // Simulasi pembuatan pesanan
+        const orderId = `#${Math.floor(Math.random() * 90000) + 10000}`;
+        const total =
+          cart.reduce((acc, item) => acc + item.price * item.qty, 0) +
+          shippingCost;
+
+        // Set info di halaman "Thank You"
+        document.getElementById("order-id").textContent = orderId;
+        document.getElementById("thankyou-total").textContent =
+          formatRupiah(total);
+
+        // Reset keranjang
+        cart = [];
+        updateCartCountBadge();
+
+        // Pindah ke halaman "Thank You"
+        navigateTo("thankyou");
+      }
+
+      // --- INISIALISASI ---
+      /**
+       * Fungsi yang dijalankan saat halaman selesai dimuat.
+       */
+      document.addEventListener("DOMContentLoaded", () => {
+        renderHomeProducts(); // Tampilkan produk di homepage
+        updateCartCountBadge(); // Pastikan badge keranjang 0
+      });
+    </script>
+  </body>
+</html>
